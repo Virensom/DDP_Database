@@ -1,0 +1,84 @@
+---
+title: "Developing Data Products - Week 4 Assignment"
+author: "Viren Soman"
+date: '2022-05-17'
+output: ioslides_presentation
+---
+
+
+## Reproducible Pitch
+
+This is for the week 4 assignment in the Developing Data Products Module. The assignment entails creating a Shiny app and deploying it on the Shiny Server.
+
+the shiny app can be located at the following website:
+http://vsoman.shinyapps.io/DDP_Week4_Assignment/
+
+
+## Overview
+
+The data set used is based on the MTCars database.  The dataset contains miles per gallon data for various variables.
+
+```{r}
+mtcars1 <- as.data.frame(read.csv("mtcars.csv"))
+head(mtcars1)
+
+```
+
+## Shiny app UI code
+
+library(shiny)
+
+head(mtcars1)
+
+shinyUI(fluidPage(
+    
+    # Application title
+    titlePanel("Using MTCars Dataset - Showing Miles per Gallon"),
+    
+    sidebarPanel(
+        
+        selectInput("variable", "Variable:", 
+                    c("Cylinders" = "cyl",
+                      "Gears" = "gear",
+                      "Horse Power" = "hp",
+                      "Transmission" = "am",
+                      "Weight" = "wt"))
+    ),
+    
+    mainPanel(
+        # Output: Formatted text for caption ----
+        h3(textOutput("caption")),
+        
+        # Output: Plot of the requested variable against mpg ----
+        plotOutput("mpgPlot")
+    )
+))
+
+
+
+## Shiny app Server code
+
+library(shiny)
+library(ggplot2)
+library(plotly)
+
+mpg_Data <- mtcars  # using mtcars dataset
+
+mtcars1 <- as.data.frame(read.csv("mtcars.csv"))
+mpg_Data <- mtcars1 # using mtcars dataset
+
+mpg_Data$am <- factor(mpg_Data$am, labels = c("Automatic", "Manual"))
+shinyServer(function(input, output) {
+  
+  formulaText <- reactive({
+    paste("mpg vs ", input$variable)
+  })
+  
+  output$caption <- renderText({
+    formulaText()
+  })
+  output$mpgPlot <- renderPlot({
+    ggplot(mpg_Data, aes_string(y=input$variable, x="mpg", color = input$variable)) + geom_point()
+  })
+  
+})
